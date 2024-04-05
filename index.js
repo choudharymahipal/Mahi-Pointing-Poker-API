@@ -5,42 +5,28 @@ const io = require("socket.io")(httpServer, {
   cors: { origin: "*" },
 });
 const port = process.env.PORT || 3000;
-const { addUser, removeUser, getUser, getUsersInRoom } = require("./users");
-
-//Help
-//https://medium.com/swlh/build-a-chat-room-with-node-js-and-socket-io-e3e43f49a02d
-var allMessages = [];
-// Object to store active channels
-const activeChannels = {};
-
-app.get("/api/messages/:channelId", (req, res) => {
-  const channelId = req.params.channelId;
-  console.log("req received for: ", channelId);
-  // You can handle querying messages from the database based on the channel ID here
-  // For demonstration, let's assume you have a function to fetch messages by channel ID
-  const messages = getMessagesByChannelId(channelId);
-  console.log("output: ", messages);
-  res.json(messages);
-});
-
-function getMessagesByChannelId(channelId) {
-  // Simulated messages retrieval for demonstration
-  return allMessages.filter((a) => a.channelId == channelId);
-}
+const {
+  addUser,
+  removeUser,
+  getUser,
+  getAllUsersInRoom,
+} = require("./DB/users");
+const { addRoom, removeRoom, getAllRooms } = require("./DB/rooms");
 
 io.on("connect", (socket) => {
+
   //When user click on Create Room
   socket.on("createChannel", (channelId) => {
     socket.join(channelId);
-    if (!activeChannels[channelId]) {
-      activeChannels[channelId] = [];
-    }
-    activeChannels[channelId].push(channelId);
-    console.log(`New channel created as: ${channelId}`);
+    addRoom(channelId); //save room
+    console.log(`Room created as: ${channelId}`);
   });
 
-  //Join existing channel by users
+  //When user click on Join Now. So we need to check tht room is existing or not.
+  // socket.emit("getAllRooms", getAllRooms());
+
   socket.on("joinChannel", ({ username, room }) => {
+    console.log("getroom",getAllRooms());
     console.log("username:", username);
     console.log("room:", room);
   });
@@ -80,9 +66,5 @@ io.on("connect", (socket) => {
   });
 });
 
-//Get all channels list
-app.get("/api/active-channels", (req, res) => {
-  res.json(Object.keys(activeChannels));
-});
 
 httpServer.listen(port, () => console.log(`listening on port ${port}`));
