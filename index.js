@@ -5,66 +5,44 @@ const io = require("socket.io")(httpServer, {
   cors: { origin: "*" },
 });
 const port = process.env.PORT || 3000;
-const {
-  addUser,
-  removeUser,
-  getUser,
-  getAllUsersInRoom,
-} = require("./DB/users");
+//Database
+const { addUser, removeUser, getAllUsers } = require("./DB/users");
 const { addRoom, removeRoom, getAllRooms } = require("./DB/rooms");
+const { addStory, removeStory, getAllStories } = require("./DB/story");
 
 io.on("connect", (socket) => {
-
-  //When user click on Create Room
-  socket.on("createChannel", (channelId) => {
-    socket.join(channelId);
-    addRoom(channelId); //save room
-    console.log(`Room created as: ${channelId}`);
+  //When user click on Join Now
+  socket.on("joinRoom", (data) => {
+    socket.join(data);
+    //confirm please -> when user want to join room that time broadcast is required or not??
+    socket.broadcast.to(data.roomId).emit("user joined room");
+    io.in(data.roomId).emit("allUsers", data);
+    addRoom(data.roomId); //create new room
+    let userStatus = addUser(data); //create new user
+    console.log(userStatus);
   });
 
-  //When user click on Join Now. So we need to check tht room is existing or not.
-  // socket.emit("getAllRooms", getAllRooms());
+  //get all rooms
+  io.emit("allRooms", getAllRooms());
 
-  socket.on("joinChannel", ({ username, room }) => {
-    console.log("getroom",getAllRooms());
-    console.log("username:", username);
-    console.log("room:", room);
-  });
+  //get all users
+  io.emit("allUsers", getAllUsers());
 
-  socket.on("sendMessage", (messageData) => {
-    io.to(messageData.channelId).emit("newMessage", messageData);
-    allMessages.push({
-      text: messageData.text,
-      sender: messageData.sender,
-      channelId: messageData.channelId,
-    });
-    console.log(allMessages);
+  //get story Description
+  io.emit("allStories", getAllStories());
+
+  //when observer update story desscription
+  socket.on("storyDescription", (data) => {
+    console.log("received req at storyDescription");
+    io.in(data.roomId).emit("allStories", data);
+    addStory(data);
+    console.log("allStories", data);
   });
 
   //Disconnect user
   socket.on("disconnect", () => {
-    // Remove the socket from all channels
-    // for (let channel in activeChannels) {
-    //   activeChannels[channel] = activeChannels[channel].filter(
-    //     (id) => id !== socket.id
-    //   );
-    //   if (activeChannels[channel].length === 0) {
-    //     delete activeChannels[channel];
-    //   }
-    // }
-    // const user = removeUser(socket.id);
-    // if (user) {
-    //   io.to(user.room).emit("message", {
-    //     user: "adminX",
-    //     text: `${user.name.toUpperCase()} has left.`,
-    //   });
-    //   io.to(user.room).emit("roomData", {
-    //     room: user.room,
-    //     users: getUsersInRoom(user.room),
-    //   });
-    // }
+    console.log("user disconnected");
   });
 });
-
 
 httpServer.listen(port, () => console.log(`listening on port ${port}`));
