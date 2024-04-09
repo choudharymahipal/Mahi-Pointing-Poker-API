@@ -8,9 +8,16 @@ const port = process.env.PORT || 3000;
 //Database
 const { addUser, removeUser, getAllUsers } = require("./DB/users");
 const { addRoom, removeRoom, getAllRooms } = require("./DB/rooms");
-const { addStory, removeStory, getAllStories } = require("./DB/story");
+const {
+  addStory,
+  removeStory,
+  getAllStories,
+  addShowHide,
+  getAllShowHide,
+} = require("./DB/story");
 
 io.on("connect", (socket) => {
+  //#region Room & User Activity
   //When user click on Join Now
   socket.on("joinRoom", (data) => {
     socket.join(data);
@@ -27,22 +34,36 @@ io.on("connect", (socket) => {
 
   //get all users
   io.emit("allUsers", getAllUsers());
+  //#endregion
 
+  //#region Story Description Activity
   //get story Description
   io.emit("allStories", getAllStories());
 
   //when observer update story desscription
   socket.on("storyDescription", (data) => {
-    console.log("received req at storyDescription");
     io.in(data.roomId).emit("allStories", data);
     addStory(data);
-    console.log("allStories", data);
   });
+  //#endregion
 
+  //#region Show Hide Button Activity
+  //get all sho hide
+  io.emit("getAllShowHide", getAllShowHide());
+
+  //when observer click on show hide button
+  socket.on("setShowHide", (data) => {
+    io.in(data.roomId).emit("getAllShowHide", data);
+    addShowHide(data);
+  });
+  //#endregion
+
+  //#region Disconnect Activity
   //Disconnect user
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
+  //#endregion
 });
 
 httpServer.listen(port, () => console.log(`listening on port ${port}`));

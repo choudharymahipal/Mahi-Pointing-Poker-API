@@ -1,5 +1,6 @@
 const stories = [];
-
+const showHide = [];
+//#region Story Activity
 const addStory = (data) => {
     if(stories){
         //if not empty
@@ -32,5 +33,34 @@ const removeStory = (roomId) => {
 const getAllStories = function () {
   return stories;
 };
+//#endregion
 
-module.exports = { addStory, removeStory, getAllStories };
+//#region Show Hide Button Activity
+const addShowHide = (data) => {
+    if(showHide){
+        //if not empty
+        if(showHide.find(x => x.roomId === data.roomId)){
+            //if room already exist
+            for (let index = 0; index < showHide.length; index++) {
+                if(showHide[index].roomId === data.roomId){
+                    showHide[index].isShow = data.isShow;
+                    break;
+                }
+            }
+        }else{
+            //add new rooms's story
+            showHide.push(data);
+        }
+    }else{
+        //if array is empty
+        showHide.push(data);
+    }
+    
+};
+
+const getAllShowHide = function () {
+    return showHide;
+  };
+//#endregion
+
+module.exports = { addStory, removeStory, getAllStories,addShowHide,getAllShowHide };
