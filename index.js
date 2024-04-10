@@ -14,6 +14,7 @@ const {
   getAllStories,
   addShowHide,
   getAllShowHide,
+  addStoryPoint,getAllStoryPoints
 } = require("./DB/story");
 
 io.on("connect", (socket) => {
@@ -48,7 +49,7 @@ io.on("connect", (socket) => {
   //#endregion
 
   //#region Show Hide Button Activity
-  //get all sho hide
+  //get all show hide
   io.emit("getAllShowHide", getAllShowHide());
 
   //when observer click on show hide button
@@ -58,10 +59,22 @@ io.on("connect", (socket) => {
   });
   //#endregion
 
+  //#region Story Point Activity
+  io.emit("getStoryPoint", getAllStoryPoints());
+
+  //when observer click on show hide button
+  socket.on("setStoryPoint", (data) => {
+    io.in(data.roomId).emit("getStoryPoint", data);
+    addStoryPoint(data);
+  });
+  //#endregion
+
+
   //#region Disconnect Activity
   //Disconnect user
   socket.on("disconnect", () => {
     console.log("user disconnected");
+    //console.log(socket); 
   });
   //#endregion
 });
