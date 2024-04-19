@@ -2,7 +2,10 @@ const app = require("express")();
 const httpServer = require("http").createServer(app);
 const morgan = require("morgan"); //Logs the requests
 const io = require("socket.io")(httpServer, {
-  cors: { origin: "*" },
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 const port = process.env.PORT || 3000;
 //Database
@@ -14,18 +17,25 @@ const {
   getAllStories,
   addShowHide,
   getAllShowHide,
-  addStoryPoint,getAllStoryPoints
+  addStoryPoint,
+  getAllStoryPoints,
 } = require("./DB/story");
 
+app.get("/", (req, res) => {
+  res.send("<h3>Mahi-Poniting-Poker-API is alive.</h3>");
+});
+
 io.on("connect", (socket) => {
+  console.log("User Connected.");
+  console.log("ID: ",socket.id);
   //#region Room & User Activity
   //When user click on Join Now
   socket.on("joinRoom", (data) => {
     socket.join(data);
-    //confirm please -> when user want to join room that time broadcast is required or not??
     socket.broadcast.to(data.roomId).emit("user joined room");
     io.in(data.roomId).emit("allUsers", data);
     addRoom(data.roomId); //create new room
+    data.socketId = socket.id; //create unique socket id for each user
     let userStatus = addUser(data); //create new user
     console.log(userStatus);
   });
@@ -69,12 +79,12 @@ io.on("connect", (socket) => {
   });
   //#endregion
 
-
   //#region Disconnect Activity
   //Disconnect user
   socket.on("disconnect", () => {
     console.log("user disconnected");
-    //console.log(socket); 
+    console.log("ID: ",socket.id);
+    //removeUser(socket.id);
   });
   //#endregion
 });
