@@ -93,6 +93,19 @@ const addStoryPoint = (data) => {
   }
 };
 
+const clearStoryPoint = (data) => {
+  for (let i = 0; i < storyPoints.length; i++) {
+    for (let m = 0; m < data.length; m++) {
+      if (
+        storyPoints[i].roomId === data[m].roomId &&
+        storyPoints[i].username === data[m].username
+      ) {
+        storyPoints[i].storyPoint = data[m].storyPoint;
+      }
+    }
+  }
+};
+
 const getAllStoryPoints = function () {
   return storyPoints;
 };
@@ -105,5 +118,6 @@ module.exports = {
   addShowHide,
   getAllShowHide,
   addStoryPoint,
+  clearStoryPoint,
   getAllStoryPoints,
 };

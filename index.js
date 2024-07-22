@@ -18,6 +18,7 @@ const {
   addShowHide,
   getAllShowHide,
   addStoryPoint,
+  clearStoryPoint,
   getAllStoryPoints,
 } = require("./DB/story");
 
@@ -76,6 +77,11 @@ io.on("connect", (socket) => {
   socket.on("setStoryPoint", (data) => {
     io.in(data.roomId).emit("getStoryPoint", data);
     addStoryPoint(data);
+  });
+
+  socket.on("clearStoryPoint", (data) => {
+    clearStoryPoint(data);
+    io.in(data.roomId).emit("getStoryPoint", data);
   });
   //#endregion
 
